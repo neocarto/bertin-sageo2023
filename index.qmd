@@ -1,0 +1,2604 @@
+---
+title: "Cartographier pour le web avec la bibliothèque JavaScript `bertin`"
+subtitle: "SAGEO, 2023 - Québec, Canada"
+author: "Nicolas Lambert, Timothée Giraud,  Matthieu Viry, Ronan Ysebaert"
+date: 06/7/2023
+date-format: "DD MMM YYYY"
+title-slide-attributes:
+  data-background-color: black
+  data-background-image: img/SAGEO.png
+  data-background-size: cover
+  data-background-opacity: "0.5"
+format:
+  revealjs:
+    margin: 0
+    embed-resources: true
+    smaller: true
+    scrollable: false
+    theme: [simple, custom.scss]
+    code-line-numbers: false
+editor: visual
+execute:
+  echo: true
+---
+
+## Introduction
+
+::: columns
+::: {.column width="40%"}
+![](img/logobertin.png)
+:::
+
+::: {.column width="60%"}
+<br/><br/> [bertin](https://github.com/neocarto/bertin) est une bibliothèque écrite en [JavaScript](https://developer.mozilla.org/fr/docs/Web/JavaScript) qui permet de réaliser des cartes thématiques pour le web.
+
+<br/>
+
+Sa conception vise à permettre aux utilisateurs de créer rapidement des cartes thématiques interactives sans forcement connaître le langage JavaScript
+:::
+:::
+
+Le développemement de `bertin` est intimement lié au développement de la plateforme de notebooks **Observable**.
+
+## Introduction
+
+::: columns
+::: {.column width="10%"}
+![](img/observable.png)
+:::
+
+::: {.column width="90%"}
+**Observable** est aussi une startup fondée par Mike Bostock et Melody Meckfessel, qui propose une plateforme 100% en ligne pour concevoir, partager et diffuser des visualisations de données.
+:::
+:::
+
+![](img/chronologie.png)
+
+L'**Observable javascript (ojs)** est un ensemble d'améliorations apportées à vanilla JavaScript créé par Mike Bostock (également auteur de D3). Observable JS se distingue par son exécution réactive, qui convient particulièrement bien à l'exploration et à l'analyse interactives des données. Objectif : faire collaborer une communauté autour de la visualisation de données.
+
+**Observable**, c'est aussi une plateforme web qui héberge des </ins>notebooks</ins> computationnels sur la visualisation de données.
+
+*NB : Cette présentation est réalisée avec Quarto (qui implémente l'ojs)*
+
+# La bibliothèque bertin 🗺️
+
+Une bibliothèque JavaScript pour la cartographie thématique
+
+## Principes
+
+![](img/bannerbertin.png)
+
+Le développement de la bibliothèque `bertin` s'appuie en grande partie sur le librairie javascript [d3.js](https://d3js.org/) développée par Mike Bostock depuis 10 ans. Le développement a débuté en novembre 2021. Il y a 8 contributeurs. 254 ⭐ sur Github.
+
+Pour charger la bibliothèque :
+
+``` js
+<script src="https://cdn.jsdelivr.net/npm/bertin" charset="utf-8"></script>
+```
+
+Dans Observable, on utilise `require`
+
+```{ojs}
+//| eval : false
+bertin = require("bertin@1.7.3")
+```
+
+```{ojs}
+//| eval : true
+//| echo : false
+bertin = require("./lib/bertin173.js")
+```
+
+## Principes
+
+<br/>
+
+Elle permet de réaliser<br/>de nombreux types de cartes thématiques.
+
+![](img/bannerbert.png)
+
+Parti pris :
+
+👉 cartographie <ins>**vectorielle**</ins>
+
+👉 cartographie <ins>**interactive**</ins> pour le web
+
+👉 une recherche <ins>**esthétique**</ins>
+
+👉 plutôt à partir de <ins>**maillages**</ins> administratifs
+
+👉 plutôt avec des <ins>**données**</ins> pas trop volumineuses
+
+👉 forte intégration avec l'écosystème d'<ins>**Observable**</ins>
+
+## Principes
+
+Le principe de la bibliothèque bertin est de proposer un outil permettant de réaliser rapidement des cartes thématiques variées sans faire appel à la programmation en JavaScript ni directement à la bibliothèque D3.js.
+
+![](img/level.png)
+
+## Les données en entrée
+
+La bibliothèque `bertin` prend en entrée des données JSON, GeoJSON ou topoJSON.
+
+```{ojs}
+//| eval : true
+//| echo : false
+cities = FileAttachment("data/cities.json").json()
+cables = FileAttachment("data/cables.json").json()
+world = FileAttachment("data/world.json").json()
+land = FileAttachment("data/land.json").json()
+regions = FileAttachment("data/regions.json").json()
+statsall = FileAttachment("data/worldbank_data.csv").csv({typed: true})
+stats = statsall.filter(d => d.date == 2019)
+```
+
+<ins>Les données</ins>
+
+```{ojs}
+//| eval : true
+//| echo : false
+stats
+```
+
+<br/><ins>Le fond de carte</ins>
+
+```{ojs}
+//| eval : true
+//| echo : false
+world
+```
+
+<br/>La fonction **`match()`** permet de tester la compatibilité entre les données et le fonde de carte.<br/>
+
+```{ojs}
+bertin.match(world, "id", stats, "iso3c")
+```
+
+La fonction **`merge()`** permet d'effectuer la jointure<br/>
+
+```{ojs}
+world2019 = bertin.merge(world, "id", stats, "iso3c")
+```
+
+## La fonction quickdraw()
+
+La fonction **`quickdraw()`** permet de visualiser la carte dans la projection d3.geoEquirectangular().
+
+```{ojs}
+//| eval : false
+//| echo : true
+bertin.quickdraw(world2019)
+```
+
+<br/>
+
+```{ojs}
+//| eval : true
+//| echo : false
+bertin.quickdraw(world2019, 800)
+```
+
+## La fonction draw()
+
+On utilise la fonction **`draw()`** pour dessiner tous les types de cartes. La fonction prend en entrée un objet JavaScript contenant toutes les informations nécéssaires.
+
+![](img/bertin_code.png)
+
+L'ordre des couches définit l'ordre d'affichage. Ce qui est écrit au dessus s'affiche au dessus.
+
+## La fonction draw()
+
+Polygones (syntaxe minimale)
+
+```{ojs}
+//| eval : false
+//| echo : true
+bertin.draw({ layers: [ {geojson: world2019} ] })
+```
+
+<br/>
+
+```{ojs}
+//| eval : true
+//| echo : false
+bertin.draw({ params: {width:800}, layers: [ {geojson: world2019, fill:"#E63F33"} ] })
+```
+
+## La fonction draw()
+
+Points (syntaxe minimale)
+
+```{ojs}
+//| eval : false
+//| echo : true
+bertin.draw({ layers: [ {geojson: cities} ] })
+```
+
+<br/>
+
+```{ojs}
+//| eval : true
+//| echo : false
+bertin.draw({ params: {width:800}, layers: [ {geojson: cities, fill:"#E63F33"}, {geojson: land, fill:"#CCC", stroke:"none", fillOpacity: 0.5} ] })
+```
+
+## La fonction draw()
+
+Lignes (syntaxe minimale)
+
+```{ojs}
+//| eval : false
+//| echo : true
+bertin.draw({ layers: [ {geojson: cables} ] })
+```
+
+<br/>
+
+```{ojs}
+//| eval : true
+//| echo : false
+bertin.draw({ params: {width:800}, layers: [ {geojson: cables, stroke:"#E63F33"}, {geojson: land, fill:"#CCC", stroke:"none", fillOpacity: 0.5} ] })
+```
+
+# Habillage et mise en page️
+
+## Définir les styles
+
+::: columns
+::: {.column width="35%"}
+Le rendu peut être très largement paramétré.
+
+```{ojs}
+//| eval : true
+//| echo : false
+viewof simple_strokewidth = Inputs.range([0.1, 5], {label: "strokeWidth", step: 0.1, value: 1})
+viewof simple_symbol = Inputs.select(["circle", "cross", "diamond", "square", "star", "triangle", "wye"], { label: "Symbol"})
+viewof simple_symbol_size = Inputs.range([50, 300], {label: "symboll_size", step: 1, value: 100})
+```
+
+```{ojs}
+//| eval : false
+//| echo : true
+bertin.draw({ 
+  layers: [
+          { 
+      geojson: cities,
+      symbol: "square",
+     }, 
+      { 
+      geojson: cables,
+      strokeWidth: 2
+    }, 
+    { 
+      geojson: world2,
+      fill: "#F6836F",
+    }
+  ]
+})
+```
+:::
+
+::: {.column width="65%"}
+Les styles (couleurs, transparence, épaisseur, etc) reprennent les noms des attributs SVG.
+
+```{ojs}
+//| eval : true
+//| echo : false
+viewof simple_color = Inputs.color({ label: "Couleur des pays", value: "#8c9dba" })
+```
+
+```{ojs}
+//| eval : true
+//| echo : false
+bertin.draw({ 
+  layers: [
+        { 
+      geojson: cities,
+      symbol: simple_symbol,
+      fill: "#E63F33",
+      symbol_size:simple_symbol_size
+     }, 
+      { 
+      geojson: cables,
+      strokeWidth: simple_strokewidth,
+      stroke: "#193561"
+     }, 
+    { 
+      geojson: land,
+      fill: simple_color,
+      fillOpacity: 0.8, 
+      stroke:"white",
+    }
+  ]
+})
+```
+:::
+:::
+
+## Mise en page
+
+En plus des couches, la fonction draw prend en entrée des paramètres généraux.
+
+```{ojs}
+//| eval : false
+//| echo : true
+bertin.draw({ 
+  params: {background: "red", width: 500, margin:[10, 0, 0, 10]},
+  layers: []
+})
+```
+
+<br/>
+
+::: columns
+::: {.column width="40%"}
+```{ojs}
+//| eval : true
+//| echo : false
+viewof width = Inputs.range([200, 600], { label: "width", value: 500, step: 1 })
+viewof top = Inputs.range([0, 100], { label: "top", value: 80, step: 1 })
+viewof right = Inputs.range([0, 100], { label: "right", value: 10, step: 1 })
+viewof bottom = Inputs.range([0, 100], { label: "bottom", value: 80, step: 1 })
+viewof left = Inputs.range([0, 100], { label: "left", value: 10, step: 1 })
+viewof background = Inputs.color({label: "background", value: "#e1f5fe"})
+```
+:::
+
+::: {.column width="60%"}
+```{ojs}
+//| eval : true
+//| echo : false
+bertin.draw({ 
+  params:{background, margin: [top, right, bottom, left], width},
+  layers: [
+    { 
+      geojson: world2019,
+      fill: "#E63F33",
+      stroke:"#E63F33"
+
+    }
+  ]
+})
+```
+:::
+:::
+
+## Les projections
+
+La bibliothèque `bertin` s'appuie sur l'écosystème de d3. Elle bénificie donc des projections disponible dans `d3.geo` et `d3.geoprojection`.
+
+::: columns
+::: {.column width="35%"}
+<br/>
+
+```{ojs}
+//| echo: false
+//| eval : true
+prj = ["Polar","Spilhaus","InterruptedSinusoidal", "Armadillo", "Baker", "Gingery", "Berghaus","Loximuthal", "Healpix", "InterruptedMollweideHemispheres", "Miller", "Aitoff", "Globe"]
+viewof projection = Inputs.select(prj)
+```
+
+<br/>
+
+```{ojs}
+//| echo: true
+//| eval : false
+bertin.draw({ 
+  params: {projection: ""},
+  layers: []
+})
+```
+
+<br/>
+
+Si on choisit la projection "globe", on obtient un globe interactif.
+
+<br/>
+
+La librairie `bertin` permet également d'utiliser des projections au format proj4 ou epsg.
+:::
+
+::: {.column width="65%"}
+```{ojs}
+//| echo: false
+//| eval : true
+bertin.draw({ 
+  params: {projection: projection, width: 500, clip: true},
+  layers: [ 
+    { type: "outline", stroke: "#E63F33", strokeWidth:2, fill: "none" },
+    { geojson: world, fill: "#E63F33" },
+    { type: "geolines", stroke: "#E63F33", strokeWidth:1, fill: "none" },
+  ]
+})
+```
+:::
+:::
+
+## Couches d'habillage
+
+### Outline
+
+Le type **`outline`** permet d'afficher l'espace terrestre.
+
+``` js
+{type: "outline" }
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600, projection: "Bertin1953"},
+  layers: [
+   {type : "outline", stroke: "#E63F33", fill:"#E63F33", strokeWidth: 1.2, strokeOpacity: 1, fillOpacity:1},
+   {geojson:world, stroke:"none", fill:"white", fillOpacity:0.2}
+  ]
+})
+```
+:::
+
+::: {.column width="40%"}
+:::
+:::
+
+## Couches d'habillage
+
+### Geolines
+
+Le type **`geolines`** permet d'afficher l'équateur, les tropiques et les cercles polaires
+
+``` js
+{type: "geolines"}
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600, projection: "Bertin1953"},
+  layers: [
+   {type : "geolines", stroke: "#E63F33"},
+   {type : "outline", stroke: "none", fill:"none"},
+   {geojson:world, stroke:"none", fill:"#ccc", fillOpacity:0.5}
+  ]
+})
+```
+:::
+
+::: {.column width="40%"}
+:::
+:::
+
+## Couches d'habillage
+
+### Graticule
+
+Le type **`graticule`** permet d'afficher les lignes de latitude et de longitude.
+
+``` js
+{type: "graticule", step: [10,20]}
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600, projection: "Bertin1953"},
+  layers: [
+   {type : "graticule", stroke: "#E63F33", strokeWidth: 1, strokeOpacity: 1, step:[step1, step2]},
+   {type : "outline", stroke: "none", fill:"none"},
+   {geojson:world, stroke:"none", fill:"#ccc", fillOpacity:0.5}
+  ]
+})
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval : true
+viewof step1 = Inputs.range([10, 100], {label: "step 1", step: 1, value: 10})
+viewof step2 = Inputs.range([10, 100], {label: "step 2", step: 1, value: 20})
+```
+:::
+:::
+
+## Couches d'habillage
+
+### Waterlines
+
+Le type **`waterlines`** permet d'afficher des lignes autour des terres, comme sur les cartes anciennes
+
+``` js
+{type: "waterlines", geojson: world, nb: 5}
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600, projection: "Bertin1953"},
+  layers: [
+  {type : "waterlines", geojson: world, stroke: "#E63F33", nb, dist},
+   {type : "outline", stroke: "none", fill:"none"},
+   {geojson:world, stroke:"none", fill:"#ccc", fillOpacity:0.5}
+  ]
+})
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval : true
+viewof nb = Inputs.range([2, 10], {label: "nb", step: 1, value: 5})
+viewof dist = Inputs.range([2, 30], {label: "dist", step: 1, value: 5})
+```
+:::
+:::
+
+## Couches d'habillage
+
+### Rhumbs
+
+Le type **`rhumbs`** crée des pseudo lignes de rhumbs pour reproduire des styles de cartes anciennes (portulans)
+
+``` js
+{type: "rhumbs", position: [200, 100], nb: 25}
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600, projection: "Bertin1953"},
+  layers: [
+   {type : "rhumbs", strokeOpacity: 1, stroke:"#E63F33", nb: rhumbnb, position:[rhumbx,rhumby]},
+   {type : "outline", stroke: "none", fill:"none"},
+   {geojson:world, stroke:"none", fill:"#ccc", fillOpacity:0.5}
+  ]
+})
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval : true
+viewof rhumbnb = Inputs.range([10, 50], {label: "nb", step: 1, value: 25})
+viewof rhumbx = Inputs.range([0, 600], {label: "x", step: 1, value: 50})
+viewof rhumby = Inputs.range([0, 370], {label: "y", step: 1, value: 330})
+```
+:::
+:::
+
+## Couches d'habillage
+
+### Hatch
+
+Le type `hatch` permet d'ajouter des hachures sur la carte. Ca rajoute une texture à la carte. C'est uniquement esthétique.
+
+``` js
+{type: "Hatch", angle: 45, spacing: 4 }
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600, projection: "Bertin1953"},
+  layers: [
+   {type: "hatch", angle: hatchangle, spacing: hatchspacing,  stroke: "#E63F33", strokeOpacity: 0.4, strokeWidth:hatchstroke},
+   {type : "outline", stroke: "none", fill:"none"},
+   {geojson:world, stroke:"none", fill:"#ccc", fillOpacity:0.5}
+  ]
+})
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval : true
+viewof hatchangle = Inputs.range([1, 360], {label: "nb", step: 1, value: 45})
+viewof hatchspacing = Inputs.range([3, 50], {label: "x", step: 1, value: 10})
+viewof hatchstroke = Inputs.range([1, 20], {label: "strokeWidth", step: 1, value: 5})
+```
+:::
+:::
+
+## Couches d'habillage
+
+### Shadow
+
+Le type **`shadow`** permet d'ajouter une ombre sous une couche
+
+``` js
+{type: "shadow" }
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600, projection: "Bertin1953"},
+  layers: [
+    {geojson: land , stroke:"#E63F33", fill:"white"},
+   {type : "shadow", geojson: world, fill: "#E63F33", dx: shadowdx, dy: shadowdy, stdDeviation: shadowsd},
+   {type : "outline", stroke: "none", fill:"none"},
+
+  ]
+})
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval : true
+viewof shadowdx = Inputs.range([-50, 50], {label: "dx", step: 1, value: 5})
+viewof shadowdy = Inputs.range([-50, 50], {label: "dx", step: 1, value: 5})
+viewof shadowsd = Inputs.range([0, 6], {label: "stdDeviation", step: 0.1, value: 1.5})
+```
+:::
+:::
+
+## Couches d'habillage
+
+### Inner
+
+Le type **`inner`** permet d'ajouter un effet de dégradé sur les contours. C'est très utilisé en cartographie d'édition.
+
+``` js
+{type: "inner" }
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600, projection: "Bertin1953"},
+  layers: [
+    {type : "inner", geojson: land, fill:"#E63F33", thickness: innerthickness, blur: innerblur, fillOpacity:1},
+   {type : "outline", stroke: "none", fill:"none"},
+
+  ]
+})
+
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval : true
+viewof innerthickness = Inputs.range([0, 20], {label: "thickness", step: 1, value: 7})
+viewof innerblur = Inputs.range([0, 20], {label: "blur", step: 1, value: 4})
+
+```
+:::
+:::
+
+## Couches d'habillage
+
+### Tissot
+
+Le type **`tissot`** permet d'afficher l'indicatrice de Tissot.
+
+``` js
+{type: "tissot" }
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600, projection: "Bertin1953"},
+  layers: [
+    {type : "tissot", fill:"#E63F33", step:tissotstep},
+        {geojson: land , stroke:"#E63F33", fill:"none"},
+   {type : "outline", stroke: "none", fill:"none"},
+
+  ]
+})
+
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval : true
+viewof tissotstep = Inputs.range([5, 100], {label: "step", step: 1, value: 20})
+```
+:::
+:::
+
+## Couches d'habillage
+
+### Echelle
+
+Le type **`scalebar`** permet d'afficher l'échelle.
+
+``` js
+{type: "scalebar" }
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600,  extent:myctr, margin:30},
+  layers: [
+  {geojson: myctr , stroke:"none", fill:"#AAA"},
+  {geojson: land , stroke:"none", fill:"#CCC"},
+       {type: "scalebar", units}
+
+  ]
+})
+
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval : true
+viewof units = Inputs.radio(["miles", "kilometers"], {label: "Units", value: "kilometers"})
+
+myctr = bertin.properties.subset({
+  geojson: world,
+  field: "id",
+  selection: ["CAN"],
+})
+```
+:::
+:::
+
+## Couches d'habillage
+
+### Carte de localisation
+
+Le type **`minimap`** permet d'afficher une carte de localisation
+
+``` js
+{type: "minimap" }
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600,  extent:myctr, margin:30},
+  layers: [
+  {type: "minimap",  projection: projection2},
+  {geojson: myctr , stroke:"none", fill:"#AAA"},
+  {geojson: land , stroke:"none", fill:"#CCC"},
+
+
+  ]
+})
+
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval: true
+prj2 = ["Miller", "Polar", "Aitoff"]
+viewof projection2 = Inputs.select(prj2)
+```
+:::
+:::
+
+## Couches d'habillage
+
+### tiles
+
+Le type **`tiles`** permet d'afficher des tuiles raster, mais uniquement dans la projection Web Mercator.
+
+``` js
+{type: "tiles", style: "worldimagery" }
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 500,  extent:chn, margin:30},
+  layers: [
+  {geojson: chn , stroke:"white", fill:"none", strokeWidth:2},
+        {type: "tiles", style: tilesstyle, zoomDelta, clip:tileclip ? chn : null, source: [0,0]}
+  ]
+})
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval : true
+viewof tilesstyle = Inputs.select(
+  [
+    "openstreetmap",
+    "opentopomap",
+    "worldterrain",
+    "worldimagery",
+    "worldStreet",
+    "worldphysical",
+    "shadedrelief",
+  ],
+  { label: "style", value: "worldimagery" }
+)
+
+viewof zoomDelta = Inputs.range([0, 4], {
+  label: "zoomdelta",
+  step: 1,
+  value: 0
+})
+
+viewof tileclip = Inputs.toggle({label: "clip", value: false})
+
+chn = bertin.properties.subset({
+  geojson: world,
+  field: "id",
+  selection: ["CHN"],
+})
+```
+:::
+:::
+
+## Couches d'habillage
+
+### le logo
+
+Le type **`logo`** vous perlet d'afficher une image sur la carte.
+
+``` js
+{type : "logo", url: "http://myimage.png", position: "left"}
+```
+
+<br/>
+
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600, projection: "Bertin1953"},
+  layers: [
+   {type : "logo"},
+   {geojson: land , stroke:"#E63F33", fill:"none"},
+   {type : "outline", stroke: "none", fill:"#ddd"},
+  ]
+})
+```
+
+## Textes
+
+### Header
+
+Le type **`header`** permet d'ajouter un titre
+
+``` js
+{type: "header", text:"" }
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600, projection: "Bertin1953"},
+  layers: [
+  {type:"header", text: headertxt, anchor: headeranchor, fontSize: headersize, fill:"#E63F33", fillOpacity:1},
+    {geojson: land , stroke:"#E63F33", fill:"none"},
+   {type : "outline", stroke: "none", fill:"none"},
+
+  ]
+})
+
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval : true
+viewof headertxt = Inputs.text({ label: "texte", value: "Titre de la carte" })
+viewof headeranchor = Inputs.radio(["start", "middle", "end"], {
+  label: "alignement",
+  value: "middle"
+})
+viewof headersize = Inputs.range([5, 60], {label: "font size", step: 1, value: 20})
+```
+:::
+:::
+
+## Textes
+
+### footer
+
+Le type **`footer`** permet d'ajouter une note de bas de page (source, auteur...)
+
+``` js
+{type: "footer", text:"" }
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600, projection: "Bertin1953"},
+  layers: [
+  {type:"footer", text: footertxt, anchor: footeranchor, fontSize: footersize, fill:"#E63F33", fillOpacity:1},
+    {geojson: land , stroke:"#E63F33", fill:"none"},
+   {type : "outline", stroke: "none", fill:"none"},
+
+  ]
+})
+
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval : true
+viewof footertxt = Inputs.text({ label: "texte", value: "Banque mondiale, 2019" })
+viewof footeranchor = Inputs.radio(["start", "middle", "end"], {
+  label: "alignement",
+  value: "middle"
+})
+viewof footersize = Inputs.range([5, 40], {label: "font size", step: 1, value: 15})
+
+```
+:::
+:::
+
+## Textes
+
+### text
+
+le type **`text`** parmet d'ajouter du texte n'importe où sur la carte
+
+``` js
+{type: "text", position : [100,200], text: "Mon texte ici" }
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600, projection: "Bertin1953"},
+  layers: [
+    {type: "text", position : [txtx,txty], text: txt, fill:"#E63F33", fillOpacity:1, fontSize:20 },
+    {geojson: land , stroke:"none", fill:"#CCC"},
+   {type : "outline", stroke: "none", fill:"none"},
+
+  ]
+})
+
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval : true
+viewof txt = Inputs.text({ label: "texte", value: "Mon texte ici" })
+viewof txtx = Inputs.range([0, 500], {label: "x", step: 1, value: 250})
+viewof txty = Inputs.range([0, 500], {label: "y", step: 1, value: 150})
+
+```
+:::
+:::
+
+## Textes
+
+### Labels
+
+Le type **`label`** permet d'afficher du texte lié au fond de carte.
+
+``` js
+{type : "label", geojson : regions, values: "id"}
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600, projection: "Bertin1953"},
+  layers: [
+    {type: "label", geojson:regions, values: "id", fill: "#E63F33", halo, fontSize:labelsize   },
+    {geojson: land , stroke:"none", fill:"#CCC"},
+   {type : "outline", stroke: "none", fill:"none"},
+
+  ]
+})
+
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval : true
+viewof halo = Inputs.toggle({label: "halo", value: true})
+viewof labelsize = Inputs.range([5, 30], {label: "font size", step: 1, value: 15})
+```
+:::
+:::
+
+## Textes
+
+### Infobulles
+
+Chaque couche basée sur des données parmet l'affichage d'infobulles
+
+``` js
+{geojson : world , tooltip:["$name", "$continent", "$subregiond"] }
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600, projection: "Bertin1953"},
+  layers: [
+    {geojson: world , stroke:"none", fill:"#E63F33", tooltip:["$name", "$continent", "$subregiond"]},
+   {type : "outline", stroke: "none", fill:"none"},
+
+  ]
+})
+
+```
+:::
+
+::: {.column width="40%"}
+:::
+:::
+
+# Symbologie
+
+## Symboles proportionnels
+
+### Cercles
+
+Pour réprésenter des données quantitatives absolues, on utilise la variable visuelle **TAILLE**. En pratique, cela revient la plupart du temps à utiliser des cercles proportionnels. Dans `bertin`, on utilisera alors le type `bubble`.
+
+``` js
+{type "bubble", geojson : world, values: "pop", dorling: false}
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600, projection: "Bertin1953", margin:[0,0,30,0]},
+  layers: [
+ {type: "bubble", geojson: world2019, values: "POP", fill: "#E63F33", k: k1, dorling: bubbledorling, leg_x: 400, leg_y: 250,  leg_title: `Nombre
+d'habitants`, leg_round:0, tooltip:["$country", d => Math.round(d.properties.POP/1000000) + " millions de personnes"]}, 
+    {geojson: land,  fill: "white", fillOpacity: 0.5, stroke: "none"},
+    { type: "graticule" },
+    { type: "outline" }
+
+  ]
+})
+
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval: true
+viewof k1= Inputs.range([5, 60], {step: 1, value: 30, label: "k"})
+viewof bubbledorling = Inputs.toggle({ label: "dorling", value: false })
+
+```
+:::
+:::
+
+## Symboles proportionnels
+
+### Carrés
+
+Pour réprésenter des données quantitatives absolues, on utilise la variable visuelle **TAILLE**. En pratique, On peut aussi utiliser des carrés proportionnels. Dans `bertin`, on utilisera alors le type `square`.
+
+``` js
+{type "square", geojson : world, values: "pop", demers: false}
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600, projection: "Bertin1953", margin:[0,0,30,0]},
+  layers: [
+ {type: "square", geojson: world2019, values: "POP", fill: "#E63F33", k: k2, demers, leg_x: 400, leg_y: 250,  leg_title: `Nombre
+d'habitants`, leg_round:0, tooltip:["$country", d => Math.round(d.properties.POP/1000000) + " millions de personnes"]}, 
+    {geojson: land,  fill: "white", fillOpacity: 0.5, stroke: "none"},
+    { type: "graticule" },
+    { type: "outline" }
+
+  ]
+})
+
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval: true
+viewof k2= Inputs.range([5, 60], {step: 1, value: 30, label: "k"})
+viewof demers = Inputs.toggle({ label: "demers", value: false })
+
+```
+:::
+:::
+
+## Symboles proportionnels
+
+### Spikes
+
+Pour réprésenter des données quantitatives absolues, on utilise la variable visuelle **TAILLE**. En pratique, On peut aussi utiliser la hauteur. Dans `bertin`, on utilisera alors le type `spikes`.
+
+``` js
+{type "spikes", geojson : world, values: "pop"}
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600, projection: "Bertin1953", margin:[0,0,30,0]},
+  layers: [
+ {type: "spikes", geojson: world2019, values: "POP", fill: "#E63F33", k: spikek, demers, leg_x: 20, leg_y: 20,  leg_title: `Nombre
+d'habitants`, leg_round:0, tooltip:["$country", d => Math.round(d.properties.POP/1000000) + " millions de personnes"]}, 
+    {geojson: land,  fill: "white", fillOpacity: 0.5, stroke: "none"},
+    { type: "graticule" },
+    { type: "outline" }
+
+  ]
+})
+
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval: true
+viewof spikek= Inputs.range([5, 125], {step: 1, value: 50, label: "k"})
+```
+:::
+:::
+
+## Aplats de couleurs
+
+### Typologies
+
+Pour réprésenter des données quanlitatvives absolues, on utilise la variable visuelle **COULEUR**. Dans `bertin`, on utilisera alors le type **`typo`** pour faire varier dynamiquement les couleurs.
+
+``` js
+{geojson: world, fill: { type: "typo", values: "regions", colors: "Tableau10" } }
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+
+bertin.draw( {params: {width: 600, projection: "Bertin1953"},layers: [ 
+  {geojson: world2019, fill: {type: "typo", values: "continent", colors: pal1, leg_x: 1, leg_y: 1, leg_h: 11, leg_title: "Continents"}, tooltip:["$country", "$continent"] },
+  { type: "graticule" },
+    { type: "outline" }
+  ] })
+
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval: true
+viewof pal1 = Inputs.select(["Tableau10", "Category10", "Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1", "Set2", "Set3"], {value: "Tableau10", label: "Palette"})
+```
+:::
+:::
+
+## Aplats de couleurs
+
+### Choroplèthes
+
+Pour réprésenter des données quanlitatvives relatives, on utilise la variable visuelle **VALEUR**. Dans `bertin`, on utilisera alors le type **`choro`** pour faire varier dynamiquement les couleurs.
+
+``` js
+{geojson: world, fill: { type: "choro", values: "gdppc", colors: "BuPu" } }
+```
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+
+bertin.draw({ params: {width: 600, projection: "Bertin1953"},
+layers: [ 
+  {geojson: world2, fill: {type: "choro", values: "gdppc", method, nbreaks, colors: pal2, leg_x: 1, leg_y: 1, leg_title: "PIB par habitant", leg_round: 0}, tooltip:["$country", d => Math.round(d.properties.gdppc) +" $/hab"]},
+    { type: "graticule" },
+    { type: "outline" }
+  ] })
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval: true
+viewof pal2 = Inputs.select(["BuGn", "BuPu", "GnBu", "OrRd", "PuBuGn", "PuBu", "PuRd", "RdPu", "YlGnBu", "YlGn", "YlOrBr", "YlOrRd"], {value: "BuPu", label: "Palette"})
+viewof method = Inputs.select(
+  ["jenks", "q6", "quantile", "equal", "msd"],
+  {
+    label: "method",
+    value: "quantile"
+  }
+)
+viewof nbreaks = Inputs.range([3, 9], { label: "nbreaks", step: 1, value: 7,  disabled: method == "msd" || method == "q6" ? true : false}) 
+
+world2 = bertin.properties.add({
+    geojson: world2019, 
+    field: "gdppc", 
+    expression: "GDP/POP" 
+})
+
+```
+:::
+:::
+
+## Combinaisons
+
+### Par supperposition
+
+Avec le système de couches, il est facile de combiner des variables dont la figuration est différente.
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({params: {width: 600, projection: "Bertin1953"} ,layers: [ 
+   {type: "bubble", geojson: world2, values: "POP", fill: "none", stroke: "black", strokeWidth: 1.5},
+  {   geojson: world2,
+    fill: {type: "typo",
+                           values: "continent"
+                           }
+                           },
+      { type: "graticule" },
+    { type: "outline" }
+  ] })
+
+```
+:::
+
+::: {.column width="40%"}
+``` js
+layers : [
+  {
+    type "bubble", 
+    geojson: world,
+    values: "pop",
+    fill: "none"
+  }, 
+  {
+    geojson: world,
+    fill: {
+          type:"choro",
+          values: "continent"
+          }
+  }
+]
+```
+:::
+:::
+
+## Combinaisons
+
+### Symboles colorés (fill)
+
+On peut aussi choisir de colorier des symboles en modifiant l'attribut fill.
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({params: {width: 600, projection: "Bertin1953"} ,layers: [ 
+  {type: type, geojson: world2, values: "POP",  k: 40, fill: {type: "typo", values: "continent"}, stroke: type == "spikes" ? {type: "typo", values: "continent"} :"white", strokeWidth: 1},
+  { geojson: world, fill: "white", fillOpacity:0.3, stroke: "none"},
+  { type: "graticule" },
+  { type: "outline" }
+  ] })
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval: true
+viewof type = Inputs.select(["bubble", "square", "spikes"], {
+  label: "Type de symbol"
+})
+```
+
+<br/>
+
+``` js
+layers : [
+  {
+    type "bubble", 
+    geojson: world,
+    values: "pop",
+    fill: { type: "typo", values: "regions" }
+  }
+]
+```
+:::
+:::
+
+## Combinaisons
+
+### Symboles colorés (stroke)
+
+De la même façon, on peut colorier les contours.
+
+<br/>
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({params: {width: 600, projection: "Bertin1953"} ,layers: [ 
+  {type: type, geojson: world2, values: "POP",  k: 40, stroke:  mylayer == "Cercles" ? {type: "typo", values: "continent"} :  "none", fill: "none", strokeWidth, dorling: dor},
+  { geojson: world, fill: "white", fillOpacity:0.3, stroke: mylayer == "Pays" ? {type: "typo", values: "continent"} :  "none", strokeWidth},
+  { type: "graticule" },
+  { type: "outline" }
+  ] })
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval: true
+viewof mylayer = Inputs.radio(["Pays", "Cercles"], {value: "Cercles"})
+viewof dor = Inputs.toggle({ label: "dorling", value: true })
+viewof strokeWidth = Inputs.range([0.1, 6], {
+  label: "strokeWidth",
+  step: 0.1,
+  value: 4
+})
+```
+
+<br/>
+
+``` js
+layers : [
+  {
+    type "bubble", 
+    geojson: world,
+    values: "pop",
+    stroke: { type: "typo", values: "regions" }
+  }
+]
+```
+:::
+:::
+
+## Combinaisons
+
+### Combiner 2 données de stock
+
+La méthode la plus simple est de réaliser 2 cartes en vis à vis
+
+```{ojs}
+//| echo: false
+//| eval: true
+viewof kdouble = Inputs.range([10, 60], {
+  label: "k",
+  step: 1,
+  value: 40
+})
+```
+
+<br/>
+
+::: columns
+::: {.column width="50%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600, projection: "Bertin1953"},
+  layers: [
+    {type:"header", text: "POPULATION"},
+{type: "bubble", geojson: world2019, values: "POP", fill: "#E63F33", k: kdouble},
+ {geojson: land,  fill: "white", fillOpacity: 0.5, stroke: "none"},
+    { type: "graticule" },
+    { type: "outline" }
+
+  ]
+})
+```
+:::
+
+::: {.column width="50%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+  params: {width: 600, projection: "Bertin1953"},
+  layers: [
+  {type:"header", text: "RICHESSE"},
+ {type: "bubble", geojson: world2019, values: "GDP", fill: "#4fabd6", k:kdouble}, 
+    {geojson: land,  fill: "white", fillOpacity: 0.5, stroke: "none"},
+    { type: "graticule" },
+    { type: "outline" }
+
+  ]
+})
+```
+:::
+:::
+
+## Combinaisons
+
+### Combiner 2 données de stock
+
+```{ojs}
+//| echo: false
+//| eval: true
+world02bis = {
+let data = bertin.properties.table(world2)
+let poptot = d3.sum(data.map((d) => d.POP))
+let gdptot = d3.sum(data.map((d) => d.GDP))
+
+let data2 = data.map((d) => ({
+  id: d.id,
+  pop_pct: +((+d.POP / poptot) * 100).toFixed(2),
+  gdp_pct: +((+d.GDP / gdptot) * 100).toFixed(2)
+}))
+return bertin.merge(world2, "id", data2, "id")
+}
+```
+
+Le type **`mushroom`** permet de représenter 2 variables quantitatives
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ params: {width: 600, projection: "Bertin1953", margin:[0,0, 200, 0]}, layers: [ 
+   {type: "mushroom", k: mushroomk, geojson: world02bis,top_values: "gdp_pct",  bottom_values: "pop_pct",  leg_x: 50,
+      leg_y: 360, leg_title: "Population\net richesse\ndans le Monde",       leg_top_fill: "none",
+      leg_bottom_fill: "none",
+      leg_top_txt: "PIB (%)",
+      leg_bottom_txt: "POP (%)",
+      leg_fontSize: 17, top_tooltip: { fields: ["$name", d => Math.round(d.properties.GDP/1000000000) + " milliards de $"], col: "#d64f4f" }, bottom_tooltip: {
+        fields: ["$name", d => Math.round(d.properties.POP/1000000) + " millions d'habitants"],
+        col: "#4fabd6"
+      }},
+    {geojson: land,  fill: "white", fillOpacity: 0.5, stroke: "none"},
+    { type: "graticule" },
+    { type: "outline" }
+  ] })
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval: true
+viewof mushroomk = Inputs.range([10, 60], {
+  label: "k",
+  step: 1,
+  value: 45
+})
+
+```
+
+<br/>
+
+``` js
+{
+  type: "mushroom",
+  geojson: world02bis,
+  top_values: "gdp_pct",
+  bottom_values: "pop_pct"
+}
+```
+:::
+:::
+
+## Autres représentations
+
+### Cartes par points
+
+La première carte de densité de points a été conçue par Armand Joseph Frère de Montizon en 1830. Elle consiste à déterminer la valeur d'un point et d'en placer autant que le nombre nécéssaire pour atteindre une quantité.
+
+Avec le type **`dotdensity`**, on positionne les points de façon aléatoire dans les mailles adminstratives.
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ params: {width: 600, projection: "Bertin1953"}, layers: [ 
+   {type: "dotdensity", geojson: world2, values: "POP", dotvalue, symbol_size, fill: "#E63F33", stroke: "none"},
+ {geojson: land,  fill: "white", fillOpacity: 0.5, stroke: "none"},
+    { type: "graticule" },
+    { type: "outline" }
+  ] })
+```
+:::
+
+::: {.column width="40%"}
+``` js
+{
+  type: "dotdensity", 
+  geojson: world,
+  values: "pop",
+  dotvalue : 5000000
+}
+```
+
+<br/>
+
+```{ojs}
+//| echo: false
+//| eval: true
+viewof dotvalue = Inputs.range([1000000, 10000000], {
+  label: "dotvalue",
+  step: 1000,
+  value: 5000000
+})
+viewof symbol_size = Inputs.range([1, 10], {
+  label: "symbol_size",
+  step: 0.1,
+  value: 5
+})
+```
+:::
+:::
+
+## Autres représentations
+
+### Cartes par points
+
+La première carte de densité de points a été conçue par Armand Joseph Frère de Montizon en 1830. Elle consiste à déterminer la valeur d'un point et d'en placer autant que le nombre nécéssaire pour atteindre une quantité.
+
+Avec le type **`dotcartogram`**, on positionne les points au niveau des centroides
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ params: {width: 600, projection: "Bertin1953"}, layers: [ 
+   {type: "dotcartogram", geojson: world2, values: "POP", onedot, radius:dotcartogramradius, fill: "#E63F33", stroke: "none"},
+ {geojson: land,  fill: "white", fillOpacity: 0.5, stroke: "none"},
+    { type: "graticule" },
+    { type: "outline" }
+  ] })
+```
+:::
+
+::: {.column width="40%"}
+``` js
+{
+  type: "dotcartogram",
+  geojson: world,
+  values: "pop",
+  onedot:5000000,
+  radius: 5
+}
+```
+
+<br/>
+
+```{ojs}
+//| echo: false
+//| eval: true
+viewof onedot = Inputs.range([25000000, 100000000], {
+  label: "onedot",
+  step: 1000,
+  value: 50000000
+})
+viewof dotcartogramradius = Inputs.range([1, 10], {
+  label: "radius",
+  step: 0.1,
+  value: 5
+})
+```
+:::
+:::
+
+## Autres représentations
+
+<br/>
+
+La bibliothèque `bertin` permet de passer de mailles irrégulières (maillage administratif) à des mailles régulières (carrés).
+
+![](img/grid.png)
+
+Cela permet de réaliser de nouveaux types de représentation.
+
+## Autres représentations
+
+### Carroyages
+
+Le type **`regulargrid`** permet de passer d'un maillage administratif à une grille régulière.
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+params: {width: 600, projection: "Bertin1953"},
+layers: [ 
+   {type: "regulargrid", geojson: world2, values: ["GDP", "POP"], step: steprg, fill: { colors:  "Reds"},       tooltip: ["$id", "$value"]},{ type: "graticule" },
+    { type: "outline" }
+  ] })
+
+```
+:::
+
+::: {.column width="40%"}
+``` js
+{
+  type : "regulargrid",
+  geojson: world,
+  values: ["gdp","pop"]
+}
+```
+
+<br/>
+
+```{ojs}
+//| echo: false
+//| eval: true
+viewof steprg = Inputs.range([10, 100], {value: 10, step: 5, label: "step"})
+```
+:::
+:::
+
+## Autres représentations
+
+### "Points Bertin"
+
+Le type **`regularbubble`** de répartir des cercles proportionnels régulièrement sur la carte
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+params: {width: 600, projection: "Bertin1953"},
+layers: [ 
+    {type: "regularbubble", geojson: world2, values: "POP", step : steppb, k: kpb, fill:"#E63F33", dorling: dorlingpb},
+     {geojson: land,  fill: "white", fillOpacity: 0.5, stroke: "none"},
+   { type: "graticule" },
+    { type: "outline" }
+  ] })
+
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval: true
+viewof steppb = Inputs.range([5, 100], {value: 10, step: 5, label: "step"})
+viewof kpb = Inputs.range([3, 50], {value: 7, step: 5, step: 1, label: "k"})
+viewof dorlingpb = Inputs.toggle({label: "Dorling", value: false})
+```
+
+<br/>
+
+``` js
+{
+  type : "regularbubble",
+  geojson: world,
+  values: "pop",
+  step:50,
+  k:10
+}
+```
+:::
+:::
+
+## Autres représentations
+
+### "Carrés réguliers"
+
+Sur le même principe, on peut utiliser le type **`regularsquare`**
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+params: {width: 600, projection: "Bertin1953"},
+layers: [ 
+    {type: "regularsquare", geojson: world2, values: "POP", step : steprr, k: krr, fill:"#E63F33", dorling: dorlingrr},
+     {geojson: land,  fill: "white", fillOpacity: 0.5, stroke: "none"},
+   { type: "graticule" },
+    { type: "outline" }
+  ] })
+
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval: true
+viewof steprr = Inputs.range([5, 100], {value: 10, step: 5, label: "step"})
+viewof krr = Inputs.range([3, 50], {value: 7, step: 5, step: 1, label: "k"})
+viewof dorlingrr = Inputs.toggle({label: "Dorling", value: false})
+```
+
+<br/>
+
+``` js
+{
+  type : "regularsquare",
+  geojson: world,
+  values: "pop",
+  step:50,
+  k:10
+}
+```
+:::
+:::
+
+## Autres représentations
+
+### "Ridgelines"
+
+Avec le type **`Ridgelines`**, on peut représenter ces données sur grilles sous la forme d'une fausse 3D.
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+params: {width: 600, projection: "Bertin1953"},
+layers: [ 
+    {type: "ridge", geojson: world2, values: "POP", step : ridgestep, k: ridgek, blur: ridgeblur, fill:"#E63F33"},
+     {geojson: land,  fill: "white", fillOpacity: 0.5, stroke: "none"},
+   { type: "graticule" },
+    { type: "outline" }
+  ] })
+
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval: true
+viewof ridgestep = Inputs.range([5, 50], {value: 5, step: 2, label: "step"})
+viewof ridgeblur = Inputs.range([0, 1], {value: 0.3,  step: 0.1, label: "blur"})
+viewof ridgek = Inputs.range([50, 300], {value: 150, step: 5, label: "k"})
+
+```
+
+<br/>
+
+``` js
+{
+  type : "ridge",
+  geojson: world,
+  values: "pop",
+  step: 30, // espacement
+  blur: 0.4, // flou
+  k: 50 // hauteur
+}
+```
+:::
+:::
+
+## Autres représentations
+
+### Cartes de chaleur
+
+Avec le type **`smooth`**, on peut représenter ces données sur grilles sous la forme d'une fausse 3D.
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+params: {width: 600, projection: "Bertin1953"},
+layers: [ 
+{type: "bubble", geojson: world2, values: "POP", fill:"black", stroke: "none", k:15},
+    {
+      type: "smooth",
+      geojson: world2,
+      values: "POP",
+      bandwidth: bandwidth,
+      thresholds: thresholds,
+      clip:clipsmooth1
+    },
+     {geojson: land,  fill: "white", fillOpacity: 0.5, stroke: "none"},
+   { type: "graticule" },
+    { type: "outline" }
+  ] })
+
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval: true
+viewof bandwidth = Inputs.range([2, 60], {
+  step: 1,
+  value: 20,
+  label: "Bandwith"
+})
+viewof thresholds = Inputs.range([5, 150], {
+  step: 1,
+  value: 50,
+  label: "Thresholds"
+})
+viewof clipsmooth1 = Inputs.toggle({ label: "Clip", value: false })
+```
+
+<br/>
+
+``` js
+{
+  type: "smooth",
+  values: "pop",
+  bandwidth: 30,
+  thresholds: 20
+}
+```
+:::
+:::
+
+## Autres représentations
+
+### Cartes de chaleur
+
+Même chose en répartissant les masses sur une grille régulière
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+bertin.draw({ 
+params: {width: 600, projection: "Bertin1953"},
+layers: [ 
+{type: "regularbubble", geojson: world2, values: "POP", fill:"black", stroke: "none", k:5, step: smoothstep},
+    {
+      type: "smooth",
+      geojson: world2,
+      values: "POP",
+      grid_step : smoothstep,
+      bandwidth: bandwidth2,
+      thresholds: thresholds2,
+      clip: clipsmooth2
+    },
+     {geojson: land,  fill: "white", fillOpacity: 0.5, stroke: "none"},
+   { type: "graticule" },
+    { type: "outline" }
+  ] })
+
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval: true
+viewof bandwidth2 = Inputs.range([2, 60], {
+  step: 1,
+  value: 20,
+  label: "Bandwith"
+})
+viewof thresholds2 = Inputs.range([5, 150], {
+  step: 1,
+  value: 50,
+  label: "Thresholds"
+})
+viewof smoothstep = Inputs.range([5, 50], {
+  step: 1,
+  value: 20,
+  label: "Grille (step)"
+})
+viewof clipsmooth2 = Inputs.toggle({ label: "Clip", value: false })
+```
+
+<br/>
+
+``` js
+{
+  type: "smooth",
+  values: "pop",
+  grid_step: 10,
+  bandwidth: 30,
+  thresholds: 20
+}
+```
+:::
+:::
+
+# Interactivité
+
+## Viewof
+
+la bibliothèque `bertin` a été pensée pour être utilisée dans l'écosystème Observable. Ainsi, dans cet environnement, on peut utiliser l'instruction **`viewof`** pour transformer n'importe quelle carte en **`Input`**.
+
+::: columns
+::: {.column width="35%"}
+```{ojs}
+//| echo: true
+//| eval: false
+viewof map = bertin.draw({
+  layers: [{geojson: world}]
+})
+
+map
+```
+
+Par défaut, ce sont les latitudes et les longitudes qui sont renvoyées.
+
+```{ojs}
+//| echo: false
+//| eval: true
+map1
+```
+:::
+
+::: {.column width="65%"}
+```{ojs}
+//| echo: false
+//| eval: true
+viewof map1 = bertin.draw({ 
+params: {width: 600, projection: "Bertin1953"},
+layers: [ 
+   {geojson: land,  fill: "white", fillOpacity: 0.5, stroke: "none"},
+   { type: "graticule" },
+    { type: "outline" }
+  ] })
+
+```
+:::
+:::
+
+## Viewof
+
+Mais on peut aussi utiliser l'instruction **`viewof`** sur n'importe quelle couche.
+
+::: columns
+::: {.column width="35%"}
+```{ojs}
+//| echo: true
+//| eval: false
+map = bertin.draw({
+  layers: [
+    { 
+      geojson: world,
+      viewof: true
+    }
+  ]
+})
+
+map
+```
+
+Ainsi, les données liées à cette couche sont renvoyées
+
+```{ojs}
+//| echo: false
+//| eval: true
+map2
+```
+:::
+
+::: {.column width="65%"}
+```{ojs}
+//| echo: false
+//| eval: true
+viewof map2 = bertin.draw({ 
+params: {width: 600, projection: "Bertin1953"},
+layers: [ 
+   {geojson: world,  fill: "#E63F33",  stroke: "none", viewof: true},
+   { type: "graticule" },
+    { type: "outline" }
+  ] })
+
+```
+:::
+:::
+
+## Viewof
+
+Cela permet de faire dialoguer la carte avec d'autres éléments graphiques
+
+::: columns
+::: {.column width="50%"}
+```{ojs}
+//| echo: false
+//| eval: true
+viewof map3 = bertin.draw({ 
+params: {width: 600, projection: "Bertin1953"},
+layers: [ 
+   {geojson: world,  fill: "#E63F33",  stroke: "none", viewof: true},
+   { type: "graticule" },
+    { type: "outline" }
+  ] })
+  
+```
+:::
+
+::: {.column width="50%"}
+```{ojs}
+//| echo: false
+//| eval: true
+Plot.plot({
+  grid: true,
+  x: {
+    label: "Années →"
+  },
+  y: {
+    label: "↑ Population",
+  },
+	marginLeft: 60,
+  marks: [
+    Plot.lineY(
+      statsall.filter((d) => d.iso3c == map3.id),
+      { x: "date", y: "POP", mark: "line", stroke: "#E63F33", strokeWidth:2}
+    )
+  ]
+})
+
+```
+:::
+:::
+
+```{ojs}
+//| echo: false
+//| eval: true
+statsall.filter((d) => d.iso3c == map3.id).map(d => d.POP)
+```
+
+## La fonction update
+
+Sur chaque type de couche, une fonction **`update()`** permet de mettre à jour certains éléments de la carte sans avoir besoin de tout redessiner. Pour cela, il est nécessaire d'affecter un identifiant à chaque couche qu'on souhaite modifier.
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+viewof color = Inputs.color({ label: "Color", value: "#487294" })
+```
+
+<br/>
+
+```{ojs}
+//| echo: false
+//| eval: true
+map6 = bertin.draw({
+params: {width: 600, projection: "Bertin1953"},
+  layers: [
+    {
+      id: "mylayer",
+      geojson: land,
+    },
+    { type: "graticule" },
+    { type: "outline" }
+  ]
+})
+```
+
+<ins>Input</ins>
+
+```{ojs}
+//| echo: true
+//| eval: false
+viewof color = Inputs.color({ value: "#487294" })
+```
+
+<br/><br/>
+
+```{ojs}
+//| echo: false
+//| eval: true
+map6.update({
+  id: "mylayer",
+  attr: "fill",
+  value: color,
+  duration: 500
+})
+```
+:::
+
+::: {.column width="40%"}
+<ins>Carte</ins>
+
+```{ojs}
+//| echo: true
+//| eval: false
+map = bertin.draw({
+  layers: [
+    {
+      id: "mylayer",
+      geojson: world,
+      fill: "#487294"
+    },
+    { type: "graticule" },
+    { type: "outline" }
+  ]
+})
+```
+
+<br/> <ins>Fonction update</ins>
+
+```{ojs}
+//| echo: true
+//| eval: false
+map.update({
+  id: "mylayer",
+  attr: "fill",
+  value: color,
+  duration: 500
+})
+```
+:::
+:::
+
+## La fonction update
+
+On peut utiliser la fonction **`update()`** pour masquer/afficher des couches.
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+map8 = bertin.draw({
+params: {width: 600, projection: "Bertin1953"},
+  layers: [
+    { id: "title", type: "header", text: "Population dans le Monde" },
+    {
+      id: "pop",
+      type: "square",
+      geojson: world2,
+      k:40,
+      values: "POP",
+      fill: "#E63F33",
+    },
+    {
+      id: "basemap",
+      geojson: land,
+      fill: "#ebc994"
+    },
+    { id: "shadow", type: "shadow", geojson: land },
+    { id: "latlong", type: "graticule", stroke: "#375557", strokeOpacity: 0.2 }
+  ]
+})
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: false
+//| eval: true
+viewof checkboxes = Inputs.checkbox(layers, {
+  label: "Layers",
+  value: ["pop", "latlong"]
+})
+viewof duration = Inputs.range([0, 500], {
+  label: "Duration",
+  step: 100,
+  value: 300
+})
+```
+
+<br/>
+
+```{ojs}
+//| echo: true
+//| eval: false
+{
+  layers.forEach((d) => {
+    map.update({
+      id: d,
+      attr: "visibility",
+      value:
+        checkboxes.includes(d),
+      duration: duration
+    });
+  });
+}
+```
+:::
+:::
+
+```{ojs}
+//| echo: false
+//| eval: true
+layers = ["title", "pop", "basemap", "shadow", "latlong"]
+
+{
+  layers.forEach((d) => {
+    map8.update({
+      id: d,
+      attr: "visibility",
+      value:
+        checkboxes.includes(d),
+      duration: duration
+    });
+  });
+}
+```
+
+## La fonction update
+
+::: columns
+::: {.column width="60%"}
+```{ojs}
+//| echo: false
+//| eval: true
+viewof updatek = Inputs.range([10, 60], { label: "Rayon max", step: 1, value: 40 })
+viewof updateval = Inputs.radio(["POP", "GDP"], { label: "Variable", value: "POP" })
+viewof updatetoggle = Inputs.toggle({ label: "Dorling", value: false })
+```
+
+```{ojs}
+//| echo: false
+//| eval: true
+map5 = bertin.draw({
+params: {width: 600, projection: "Bertin1953", margin: [0,0, 200, 0]},
+  layers: [
+    {
+      id: "bub",
+      geojson: world2,
+      type: "bubble",
+      values: "POP",
+      dorling: false,
+      k: 40,
+      leg_x: 430,
+      leg_y: 270,
+      leg_round: 0,
+      leg_title: "Population",
+      tooltip: [
+        "$name",
+        (d) =>
+          `population: ${Math.round(d.properties.POP / 1000000)} million inh.`,
+        (d) =>
+          `gdp: ${Math.round(d.properties.GDP / 10000000000) / 100} billion $.`
+      ],
+      fill: "#E63F33"
+    },
+    {
+      geojson: land,
+      fill: "white",
+      fillOpacity: 0.5,
+      stroke: "none"
+    },
+    { type: "graticule" },
+    { type: "outline" }
+  ]
+})
+  
+```
+
+<br/><br/><br/>
+
+```{ojs}
+//| echo: false
+//| eval: true
+map5.update({
+  id: "bub",
+  attr: "k",
+  value: updatek,
+  duration: 500
+})
+
+map5.update({
+  id: "bub",
+  attr: "values",
+  value: updateval,
+  legend: updateval == "POP" ? "Population" : "Wealth",
+  duration: 500
+})
+
+map5.update({
+  id: "bub",
+  attr: "dorling",
+  value: updatetoggle,
+  duration: 500
+})
+```
+:::
+
+::: {.column width="40%"}
+```{ojs}
+//| echo: true
+//| eval: false
+map.update({
+  id: "bub",
+  attr: "k",
+  value: k,
+  duration: 500
+})
+```
+
+```{ojs}
+//| echo: true
+//| eval: false
+map.update({
+  id: "bub",
+  attr: "values",
+  value: val,
+  duration: 500
+})
+```
+
+```{ojs}
+//| echo: true
+//| eval: false
+map.update({
+  id: "bub",
+  attr: "dorling",
+  value: toggle,
+  duration: 500
+})
+```
+:::
+:::
+
+## La fonction update
+
+::: columns
+::: {.column width="75%"}
+```{ojs}
+//| echo: false
+//| eval: true
+map10 = bertin.draw({
+  params: { margin: [0, 0, 0, 90], projection: "Globe(-50,-30,0)", width: 700 },
+  layers: [
+    {
+      id: "sp",
+      type: "spikes",
+      geojson: world2,
+      values: "POP",
+      fill: "#e0483d",
+      k: 150,
+      leg_x: 10,
+      leg_y: 10,
+      leg_round: 0,
+      leg_title: "Population",
+       tooltip: [
+        "$name",
+        (d) =>
+          `population: ${Math.round(d.properties.POP / 1000000)} million inh.`,
+        (d) =>
+          `gdp: ${Math.round(d.properties.GDP / 10000000000) / 100} billion $.`
+      ],
+      
+    },
+    {
+      geojson: land,
+      fill: "white",
+      fillOpacity: 0.5,
+      stroke: "none"
+    },
+
+    { type: "graticule" },
+    { type: "outline" }
+  ]
+})
+```
+
+<br></br></br>
+
+```{ojs}
+//| echo: false
+//| eval: true
+map10.update({
+  id: "sp",
+  attr: "values",
+  value: valglobe,
+  legend: valglobe == "POP" ? "Population" : "Richesse",
+  duration: 500
+})
+
+map10.update({
+  id: "sp",
+  attr: "k",
+  value: kglobe,
+  duration: 0
+})
+```
+:::
+
+::: {.column width="25%"}
+**La but est de pouvoir faire ce type de visualisations en quelques lignes de code**
+
+<br/><br/>
+
+Choisissez un indicateur
+
+```{ojs}
+//| echo: false
+//| eval: true
+viewof valglobe = Inputs.radio(["POP", "GDP"], {
+  value: "POP"
+})
+
+```
+
+<br/>
+
+Faites varier la hauteur
+
+```{ojs}
+//| echo: false
+//| eval: true
+viewof kglobe = Inputs.range([50, 300], { step: 1, value: 150 })
+```
+:::
+:::
+
+# Conclusion
+
+## Documentation
+
+::: columns
+::: {.column width="60%"}
+![](img/doc.png)
+:::
+
+::: {.column width="40%"}
+![](img/cheat%20sheet%20js_page-0001.jpg) ![](img/cheat%20sheet%20js_page-0002.jpg)
+:::
+:::
+
+## Exemples
+
+![](img/exemples.png)
+
+## Bertin dans R
+
+::: columns
+::: {.column width="10%"}
+![](img/R.png){width="150"}
+:::
+
+::: {.column width="90%"}
+```{r}
+#| echo: true
+#| eval: false
+library(bertin)
+world <- st_read(system.file("gpkg/world.gpkg", package = "bertin"),
+                 layer = "world", quiet = TRUE)
+bt_param(width = 800)|>
+  bt_layer(data = world, fill = "#808080") |>
+  bt_bubble(data = world, values = "pop", k = 20) |>
+  bt_draw() |> 
+  bt_save("map.svg")
+```
+:::
+:::
+
+![](img/mapR.svg)
+
+# Merci
+
+<br/>Nicolas Lambert, Timothée Giraud, Matthieu Viry et Ronan Ysebaert

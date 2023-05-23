@@ -60,6 +60,10 @@ L'**Observable javascript (ojs)** est un ensemble d'améliorations apportées à
 
 *NB : Cette présentation est réalisée avec Quarto (qui implémente l'ojs)*
 
+## Introduction
+
+![](img/libs.png)
+
 # La bibliothèque bertin 🗺️
 
 Une bibliothèque JavaScript pour la cartographie thématique
@@ -68,7 +72,7 @@ Une bibliothèque JavaScript pour la cartographie thématique
 
 ![](img/bannerbertin.png)
 
-Le développement de la bibliothèque `bertin` s'appuie en grande partie sur le librairie javascript [d3.js](https://d3js.org/) développée par Mike Bostock depuis 10 ans. Le développement a débuté en novembre 2021. Il y a 8 contributeurs. 254 ⭐ sur Github.
+Le développement de la bibliothèque `bertin` s'appuie en grande partie sur le librairie javascript [d3.js](https://d3js.org/) développée par Mike Bostock depuis 10 ans. Le développement a débuté en novembre 2021. Il y a 8 contributeurs. 256 ⭐ sur Github.
 
 Pour charger la bibliothèque :
 
@@ -597,7 +601,7 @@ viewof rhumby = Inputs.range([0, 370], {label: "y", step: 1, value: 330})
 
 ### Hatch
 
-Le type `hatch` permet d'ajouter des hachures sur la carte. Ca rajoute une texture à la carte. C'est uniquement esthétique.
+Le type `hatch` permet d'ajouter des hachures et une texture à la carte. C'est uniquement esthétique.
 
 ``` js
 {type: "Hatch", angle: 45, spacing: 4 }
@@ -666,7 +670,7 @@ bertin.draw({
 //| echo: false
 //| eval : true
 viewof shadowdx = Inputs.range([-50, 50], {label: "dx", step: 1, value: 5})
-viewof shadowdy = Inputs.range([-50, 50], {label: "dx", step: 1, value: 5})
+viewof shadowdy = Inputs.range([-50, 50], {label: "dy", step: 1, value: 5})
 viewof shadowsd = Inputs.range([0, 6], {label: "stdDeviation", step: 0.1, value: 1.5})
 ```
 :::
@@ -716,7 +720,7 @@ viewof innerblur = Inputs.range([0, 20], {label: "blur", step: 1, value: 4})
 
 ### Tissot
 
-Le type **`tissot`** permet d'afficher l'indicatrice de Tissot.
+Le type **`tissot`** permet d’afficher l’indicatrice de Tissot et visualiser les déformations induites par l'usage d'une projection cartographique.
 
 ``` js
 {type: "tissot" }
@@ -902,7 +906,7 @@ chn = bertin.properties.subset({
 
 ### le logo
 
-Le type **`logo`** vous perlet d'afficher une image sur la carte.
+Le type **`logo`** vous permet d'afficher une image sur la carte.
 
 ``` js
 {type : "logo", url: "http://myimage.png", position: "left"}
@@ -1910,7 +1914,7 @@ viewof ridgek = Inputs.range([50, 300], {value: 150, step: 5, label: "k"})
 
 ### Cartes de chaleur
 
-Avec le type **`smooth`**, on peut représenter ces données sur grilles sous la forme d'une fausse 3D.
+Avec le type **`smooth`**, on peut représenter ces données de façon continue dans l'espace.
 
 ::: columns
 ::: {.column width="60%"}

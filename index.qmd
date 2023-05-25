@@ -60,6 +60,8 @@ L'**Observable javascript (ojs)** est un ensemble d'améliorations apportées à
 
 *NB : Cette présentation est réalisée avec Quarto (qui implémente l'ojs)*
 
+## Introduction {background-image="img/notebook.png" background-size="cover" }
+
 ## Introduction
 
 ![](img/libs.png)
@@ -720,7 +722,7 @@ viewof innerblur = Inputs.range([0, 20], {label: "blur", step: 1, value: 4})
 
 ### Tissot
 
-Le type **`tissot`** permet d’afficher l’indicatrice de Tissot et visualiser les déformations induites par l'usage d'une projection cartographique.
+Le type **`tissot`** permet d'afficher l'indicatrice de Tissot et visualiser les déformations induites par l'usage d'une projection cartographique.
 
 ``` js
 {type: "tissot" }
@@ -1455,7 +1457,7 @@ De la même façon, on peut colorier les contours.
 //| echo: false
 //| eval: true
 bertin.draw({params: {width: 600, projection: "Bertin1953"} ,layers: [ 
-  {type: type, geojson: world2, values: "POP",  k: 40, stroke:  mylayer == "Cercles" ? {type: "typo", values: "continent"} :  "none", fill: "none", strokeWidth, dorling: dor},
+  {type: "bubble", geojson: world2, values: "POP",  k: 40, stroke:  mylayer == "Cercles" ? {type: "typo", values: "continent"} :  "none", fill: "none", strokeWidth, dorling: dor},
   { geojson: world, fill: "white", fillOpacity:0.3, stroke: mylayer == "Pays" ? {type: "typo", values: "continent"} :  "none", strokeWidth},
   { type: "graticule" },
   { type: "outline" }

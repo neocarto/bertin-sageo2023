@@ -2607,4 +2607,14 @@ bt_param(width = 800)|>
 
 # Merci
 
-<br/>Nicolas Lambert, Timothée Giraud, Matthieu Viry et Ronan Ysebaert
+<br/>Nicolas Lambert, Timothée Giraud, Matthieu Viry et Ronan Ysebaert<br/><br/>
+
+👉 <ins>Code</ins> et <ins>documentation</ins> : [github.com/neocarto/bertin](https://github.com/neocarto/bertin)<br/>
+👉 <ins>Exemples</ins> : [observablehq.com/collection/@neocartocnrs/bertin](https://observablehq.com/collection/@neocartocnrs/bertin)<br/>
+👉 <ins>Issues</ins> : [github.com/neocarto/bertin/issues](https://github.com/neocarto/bertin/issues)
+
+<br/>
+
+<small>*Cette présentation est disponible ici : [neocarto.github.io/bertin-sageo2023](https://neocarto.github.io/bertin-sageo2023)*</small>
+
+

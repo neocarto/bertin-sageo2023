@@ -1388,7 +1388,7 @@ layers : [
   {
     geojson: world,
     fill: {
-          type:"choro",
+          type:"typo",
           values: "continent"
           }
   }
